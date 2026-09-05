@@ -19,10 +19,7 @@ def busca(objetivo:int, pila:list, resto_op:list, calculo:list, mejor_global:int
         return 0, calculo
     # Caso base 2: no hay más operandos disponibles
     elif (len(pila) == 1) and (not resto_op):
-        if abs(pila[0]-objetivo) < mejor_global:
-            return abs(pila[0]-objetivo), calculo
-        else:
-            return INFINITO, []
+        return abs(pila[0] - objetivo), calculo
     # Caso general
     else:
         calculo_old = calculo
@@ -34,7 +31,7 @@ def busca(objetivo:int, pila:list, resto_op:list, calculo:list, mejor_global:int
         for operando in resto_op_old:
             pila_new = pila + [operando]
             calculo_tmp = calculo_old + [operando]
-            resto_op = resto_op_old
+            resto_op = resto_op_old.copy()
             del resto_op[i]
             i = i + 1
             resultado, calculo = busca(objetivo, pila_new, resto_op, calculo_tmp, mejor)
@@ -46,10 +43,7 @@ def busca(objetivo:int, pila:list, resto_op:list, calculo:list, mejor_global:int
 
         # Caso base 3: No se pueden aplicar los operadores dado que son binarios
         if len(pila) < 2:
-            if mejor < mejor_global:
-                return mejor, calculo_mejor
-            else:
-                return INFINITO, []
+            return mejor, calculo_mejor
 
         # Probar con todas las operaciones posibles:
         for operador in ['+', '-', '*', '/']:
@@ -74,14 +68,11 @@ def busca(objetivo:int, pila:list, resto_op:list, calculo:list, mejor_global:int
                 mejor = resultado
                 calculo_mejor = calculo
 
-        if mejor < mejor_global:
-            return mejor, calculo_mejor
-        else:
-            return INFINITO, []
+        return mejor, calculo_mejor
 
 
-OBJETIVO = 180
-OPERANDOS = [1, 5, 6, 7, 9, 10]
+OBJETIVO = 999
+OPERANDOS = [1,2,3,4,5,6]
 PILA = []
 CALCULO = []
 
