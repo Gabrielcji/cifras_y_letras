@@ -2,13 +2,14 @@
 INFINITO = 9999
 
 
-def busca(objetivo:int, pila:list, resto_op:list, calculo:list, mejor_global:int):
+def busca(objetivo:int, pila:list, resto_op:list, calculo:list, mejor_global:int, max_operaciones:int):
     """
     :param objetivo: Número objetivo
     :param pila: Pila del cálculo
     :param resto_op: Lista con el resto de operandos no usados
     :param calculo: Lista que contiene el cálculo efectuado hasta ahora en notación polaca
     :param mejor_global: Mejor aproximación hasta ahora en el recorrido del árbol
+    :param max_operaciones: Número máximo de operaciones. Limita la profundidad del árbol
     :return:
         (0, calculo): Resultado exacto y cálculo en notación polaca
         (N, calculo): Mejor aproximación (distancia = N) y cálculo en notación polaca
@@ -17,31 +18,32 @@ def busca(objetivo:int, pila:list, resto_op:list, calculo:list, mejor_global:int
     # Caso base 1: objetivo encontrado
     if (len(pila) == 1) and (objetivo == pila[0]):
         return 0, calculo
-    # Caso base 2: no hay más operandos disponibles
-    elif (len(pila) == 1) and (not resto_op):
+    # Caso base 2: no hay más operandos disponibles o se ha alcanzado el máximo de operaciones
+    elif (len(pila) == 1) and (not resto_op or max_operaciones == 0):
         return abs(pila[0] - objetivo), calculo
+    # Caso base 3: hay demasiados operandos para las operaciones posibles
+    elif len(pila) > max_operaciones + 1:
+        return INFINITO, []
     # Caso general
     else:
-        calculo_old = calculo
-        resto_op_old = resto_op
         mejor = mejor_global
         # Probar con todos los operandos restantes
         i = 0
         calculo_mejor = calculo
-        for operando in resto_op_old:
+        for operando in resto_op:
             pila_new = pila + [operando]
-            calculo_tmp = calculo_old + [operando]
-            resto_op = resto_op_old.copy()
-            del resto_op[i]
+            calculo_new = calculo + [operando]
+            resto_op_new = resto_op.copy()
+            del resto_op_new[i]
             i = i + 1
-            resultado, calculo = busca(objetivo, pila_new, resto_op, calculo_tmp, mejor)
-            if resultado == 0:
-                return resultado, calculo
-            elif resultado < mejor:
-                mejor = resultado
-                calculo_mejor = calculo
+            res_diferencia, res_calculo = busca(objetivo, pila_new, resto_op_new, calculo_new, mejor, max_operaciones)
+            if res_diferencia == 0:
+                return res_diferencia, res_calculo
+            elif res_diferencia < mejor:
+                mejor = res_diferencia
+                calculo_mejor = res_calculo
 
-        # Caso base 3: No se pueden aplicar los operadores dado que son binarios
+        # Caso base 4: No se pueden aplicar los operadores dado que son binarios
         if len(pila) < 2:
             return mejor, calculo_mejor
 
@@ -51,29 +53,35 @@ def busca(objetivo:int, pila:list, resto_op:list, calculo:list, mejor_global:int
                 if pila[-2] == 0:
                     # La división por 0 no está permitida
                     continue
+                elif pila[-2] == 1:
+                    # La división por 1 no añade valor
+                    continue
                 elif pila[-1] % pila[-2] != 0:
                     # Solo se admiten divisiones enteras
                     continue
-            elif operador == '-' and pila[-1] < pila[-2]:
-                # Los números negativos no están permitidos
-                continue
+            elif operador == '-':
+                if pila[-2] == 0:
+                    # Restar 0 no añade valor
+                    continue
+                elif pila[-1] < pila[-2]:
+                    # Los números negativos no están permitidos
+                    continue
             pila_new = pila[:-2]
             pila_new = pila_new + [eval(f"{pila[-1]} {operador} {pila[-2]}")]
-            calculo_tmp = calculo_old + [operador]
+            calculo_new = calculo + [operador]
 
-            resultado, calculo = busca(objetivo, pila_new, resto_op_old, calculo_tmp, mejor)
-            if resultado == 0:
-                return resultado, calculo
-            elif resultado < mejor:
-                mejor = resultado
-                calculo_mejor = calculo
+            res_diferencia, res_calculo = busca(objetivo, pila_new, resto_op, calculo_new, mejor, max_operaciones-1)
+            if res_diferencia == 0:
+                return res_diferencia, res_calculo
+            elif res_diferencia < mejor:
+                mejor = res_diferencia
+                calculo_mejor = res_calculo
 
         return mejor, calculo_mejor
 
 
-OBJETIVO = 999
-OPERANDOS = [1,2,3,4,5,6]
-PILA = []
-CALCULO = []
+OBJETIVO = 21
+OPERANDOS = [1, 2, 3]
+MAX_OPERACIONES = 1
 
-print(busca(OBJETIVO, PILA, OPERANDOS, CALCULO, INFINITO))
+print(busca(OBJETIVO, [], OPERANDOS, [], INFINITO, MAX_OPERACIONES))
