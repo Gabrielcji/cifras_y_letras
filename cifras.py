@@ -59,6 +59,10 @@ def busca(objetivo:int, pila:list, resto_op:list, calculo:list, mejor_global:int
                 elif pila[-1] % pila[-2] != 0:
                     # Solo se admiten divisiones enteras
                     continue
+            elif operador == '*':
+                if pila[-1] == 1 or pila[-2] == 1:
+                    # El producto por 1 no añade valor
+                    continue
             elif operador == '-':
                 if pila[-2] == 0:
                     # Restar 0 no añade valor
@@ -79,9 +83,45 @@ def busca(objetivo:int, pila:list, resto_op:list, calculo:list, mejor_global:int
 
         return mejor, calculo_mejor
 
+def imprime_solucion(diferencia:int, calculo:list):
+    """
+    Pasa de notación polaca a cálculo operación por operación
+    :param diferencia: diferencia con el objetivo
+    :param calculo: cálculo en notación polaca
+    :return: Nada
+    """
+    if diferencia == 0:
+        print ("He conseguido el número exacto.\n")
+    else:
+        print (f"He conseguido acercarme a {diferencia}.\n")
+    print("Detalle del cálculo:")
 
-OBJETIVO = 21
-OPERANDOS = [1, 2, 3]
-MAX_OPERACIONES = 1
+    num_operaciones = 0
+    if len(calculo) == 1:
+        print("No hace falta hacer ninguna operación")
 
-print(busca(OBJETIVO, [], OPERANDOS, [], INFINITO, MAX_OPERACIONES))
+    pila = []
+    for x in calculo:
+        if type(x) == int:
+            pila = [x] + pila
+        else:
+            num_operaciones += 1
+            print(f"{pila[0]} {'x' if x == '*' else x} {pila[1]} = "
+                  + str(int(eval(f"{pila[0]} {x} {pila[1]}"))))
+
+            resultado = int(eval(f"{pila[0]} {x} {pila[1]}"))
+            pila = [resultado] + pila[2:]
+
+    print(f"He necesitado {num_operaciones} operaciones.")
+
+OBJETIVO = 5
+OPERANDOS = [1, 2, 3, 4]
+MAX_OPERACIONES = len(OPERANDOS) + 1
+
+print(f"OBJETIVO: {OBJETIVO}")
+print(f"OPERANDOS: {OPERANDOS}\n")
+res_diferencia, res_calculo = busca(OBJETIVO, [], OPERANDOS, [], INFINITO, MAX_OPERACIONES)
+print(f"res_diferencia: {res_diferencia}")
+print(f"res_calculo: {res_calculo}")
+imprime_solucion(res_diferencia, res_calculo)
+
